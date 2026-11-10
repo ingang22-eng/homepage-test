@@ -9009,7 +9009,50 @@ function NeedLogin({
     onClick: openLogin
   }, "로그인")));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
+function tm2Note() {
+  const tok = decodeURIComponent((/[?&]note=([^&]+)/.exec(location.search) || [])[1] || '');
+  const rib = document.getElementById('tm2-ribbon');
+  if (rib) rib.remove();
+  const root = document.getElementById('root');
+  const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const box = (title, text) => {
+    document.title = '수업 노트';
+    root.innerHTML = '<div style="font-family:\'Noto Sans KR\',sans-serif;max-width:460px;margin:18vh auto;' +
+      'padding:0 20px;text-align:center;color:#0F172A">' +
+      '<div style="font-size:12px;letter-spacing:.2em;color:#2F9FE0;font-weight:700">1ST SCIENCE LAB</div>' +
+      '<h1 style="font-size:21px;margin:10px 0 8px">' + esc(title) + '</h1>' +
+      '<p style="color:#64748B;font-size:14px;line-height:1.7;margin:0">' + esc(text) + '</p></div>';
+  };
+  box('수업 노트를 여는 중입니다', '잠시만 기다려 주세요.');
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'getClassNote', token: tok })
+  }).then(res => res.json()).then(p => {
+    if (!p || !p.success || !p.data) return box('노트를 여는 중 문제가 생겼습니다', '잠시 뒤에 다시 열어 주세요.');
+    const d = p.data;
+    if (!d.ok) return box(d.title, d.msg);
+    let html = String(d.html);
+    if (d.pdfId) {
+      const bar = '<div style="position:fixed;right:14px;bottom:14px;z-index:9999">' +
+        '<a href="https://drive.google.com/uc?export=download&id=' + esc(d.pdfId) + '" target="_blank" rel="noopener" ' +
+        'style="display:inline-block;background:#0F4C81;color:#fff;text-decoration:none;' +
+        'font:700 13px/1 \'Noto Sans KR\',sans-serif;padding:12px 16px;border-radius:999px;' +
+        'box-shadow:0 6px 20px rgba(15,23,42,.22)">PDF 로 받기</a></div>';
+      html = html.indexOf('</body>') >= 0 ? html.replace('</body>', bar + '</body>') : html + bar;
+    }
+    document.title = d.title;
+    const f = document.createElement('iframe');
+    f.setAttribute('sandbox', 'allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals');
+    f.setAttribute('title', d.title);
+    f.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff';
+    f.srcdoc = html;
+    document.body.innerHTML = '';
+    document.body.style.margin = '0';
+    document.body.appendChild(f);
+  }).catch(() => box('노트를 여는 중 문제가 생겼습니다', '인터넷 연결을 확인하고 다시 열어 주세요.'));
+}
+if (/[?&]note=/.test(location.search)) tm2Note();else ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
 </script>
 <style>@media (max-width:560px){.hide-sm{display:none}}</style>
 </body>
