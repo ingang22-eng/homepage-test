@@ -741,22 +741,44 @@ function PageIntro() {
     }
   }))));
 }
-function PageClassTime({
-  schedule
+/* 2027 겨울(1–2월) 시간표 — 화면에만 보인다. 반은 아직 만들지 않았다 (대표님 지시 2026-11-10).
+   group(요일)이 바뀌면 학원 칸을 새로 묶는다. */
+const WINTER_2027_SCHEDULE = [
+  { academy: '메가스터디 러셀 원주', group: '월요일', className: '예비고1 통합과학 실력완성(월9)', type: '오프라인', target: '예비고1', day: '월요일', time: '오전 9:30-1:00' },
+  { academy: '메가스터디 러셀 원주', group: '월요일', className: '예비고2 개정화학 실력완성(월2)', type: '오프라인', target: '예비고2', day: '월요일', time: '오후 2:00-5:30' },
+  { academy: '메가스터디 러셀 원주', group: '월요일', className: '수능 통합과학 개념완성(월6)', type: '오프라인', target: '수능', day: '월요일', time: '오후 6:30-10:00' },
+  { academy: '압구정 지니어스', group: '화요일', className: '예비중2 과학 중2 실력완성(화10)', type: '오프라인', target: '예비중2', day: '화요일', time: '오전 10:00-12:30' },
+  { academy: '압구정 지니어스', group: '화요일', className: '예비중1 과학 중1 실력완성(화1)', type: '오프라인', target: '예비중1', day: '화요일', time: '오후 1:00-3:30' },
+  { academy: '메가스터디 러셀 대전', group: '수요일', className: '예비고2 개정화학 실력완성(수9)', type: '오프라인', target: '예비고2', day: '수요일', time: '오전 9:00-12:30' },
+  { academy: '메가스터디 러셀 대전', group: '수요일', className: '예비고1 통합과학 실력완성(수2)', type: '오프라인', target: '예비고1', day: '수요일', time: '오후 2:00-5:30' },
+  { academy: '메가스터디 러셀 대전', group: '수요일', className: '수능 통합과학 개념완성(수6)', type: '오프라인', target: '수능', day: '수요일', time: '오후 6:30-10:00' },
+  { academy: '미래탐구', group: '목요일', className: '예비고3 물질과 에너지 실력완성(목6)', type: '오프라인', target: '예비고3', day: '목요일', time: '오후 6:00-9:00' },
+  { academy: '수만휘', group: '금요일', className: '예비고2 개정화학 실력완성(금10)', type: '오프라인', target: '예비고2', day: '금요일', time: '오전 10:00-1:00' },
+  { academy: '수만휘', group: '금요일', className: '예비고1 통합과학 실력완성(금2)', type: '오프라인', target: '예비고1', day: '금요일', time: '오후 2:00-5:00' },
+  { academy: '수만휘', group: '금요일', className: '수능 통합과학 개념완성(금6)', type: '오프라인', target: '수능', day: '금요일', time: '오후 6:30-9:30' },
+  { academy: '미래탐구', group: '토요일', className: '예비고2 개정화학 실력완성(토10)', type: '오프라인', target: '예비고2', day: '토요일', time: '오전 10:00-1:00' },
+  { academy: '미래탐구', group: '토요일', className: '예비고1 통합과학1 실력완성(토2)', type: '오프라인', target: '예비고1', day: '토요일', time: '오후 2:00-5:00' },
+  { academy: '미래탐구', group: '토요일', className: '예비고1 통합과학 물리화학 집중(토6)', type: '오프라인', target: '예비고1', day: '토요일', time: '오후 6:30-9:30' },
+  { academy: '시대인재', group: '일요일', className: '예비고1 통합과학1 실력완성(일10)', type: '오프라인', target: '예비고1', day: '일요일', time: '오전 10:00-1:00' },
+  { academy: '시대인재', group: '일요일', className: '예비고2 개정화학 실력완성(일2)', type: '오프라인', target: '예비고2', day: '일요일', time: '오후 2:00-5:00' },
+  { academy: '시대인재', group: '일요일', className: '예비고2 개정화학 프리미엄(일6)', type: '오프라인', target: '예비고2', day: '일요일', time: '오후 6:30-9:30' }
+];
+function ScheduleTable({
+  list
 }) {
   const rows = useMemo(() => {
-    const list = schedule && schedule.length ? schedule : DEFAULT_SCHEDULE;
     const out = [];
     let prev = null,
       idx = -1;
-    list.forEach(r => {
-      if (r.academy !== prev) {
+    (list || []).forEach(r => {
+      const g = r.academy + '|' + (r.group || '');
+      if (g !== prev) {
         out.push({
           ...r,
           first: true,
           span: 1
         });
-        prev = r.academy;
+        prev = g;
         idx = out.length - 1;
       } else {
         out.push({
@@ -768,14 +790,8 @@ function PageClassTime({
       }
     });
     return out;
-  }, [schedule]);
+  }, [list]);
   return React.createElement("div", {
-    className: "shell page"
-  }, React.createElement(SectionHead, {
-    label: "Class Time",
-    title: "수업 시간",
-    desc: "2026학년도 2학기"
-  }), React.createElement("div", {
     className: "tw"
   }, React.createElement("table", null, React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", null, "학원"), React.createElement("th", {
     className: "l"
@@ -808,7 +824,31 @@ function PageClassTime({
     style: {
       fontSize: 12.5
     }
-  }, r.time)))))));
+  }, r.time))))));
+}
+function PageClassTime({
+  schedule
+}) {
+  const list = schedule && schedule.length ? schedule : DEFAULT_SCHEDULE;
+  return React.createElement("div", {
+    className: "shell page"
+  }, React.createElement(SectionHead, {
+    label: "Class Time",
+    title: "수업 시간",
+    desc: "2026학년도 2학기"
+  }), React.createElement(ScheduleTable, {
+    list: list
+  }), React.createElement("div", {
+    style: {
+      marginTop: 48
+    }
+  }, React.createElement(SectionHead, {
+    label: "Winter 2027",
+    title: "2027 겨울 시간표",
+    desc: "2027년 1–2월"
+  }), React.createElement(ScheduleTable, {
+    list: WINTER_2027_SCHEDULE
+  })));
 }
 function PageClassInfo() {
   const feats = ['평가 기준 정밀 분석으로 내신과 수능 점수 상승을 목표화', '문항 구조 해석 수업으로 문제를 보면 접근 방식이 자동으로 떠오르는 수준까지 훈련', '오개념·실수 패턴 추적 시스템을 통한 즉각 개선', '재미와 몰입을 유도하는 설명 방식으로 과학적 사고력 강화', '학생별 맞춤 진단 및 학습 동선 설계로 최적의 성장 곡선 확보'];
@@ -7572,7 +7612,7 @@ function AdmMonth({
     onClick: saveComment
   }, "저장")))));
 }
-const UI_VERSION = 'v3.13.5';
+const UI_VERSION = 'v3.13.6';
 function VersionTag() {
   const [be, setBe] = useState(null);
   useEffect(() => {
