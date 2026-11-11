@@ -9052,7 +9052,68 @@ function tm2Note() {
     document.body.appendChild(f);
   }).catch(() => box('노트를 여는 중 문제가 생겼습니다', '인터넷 연결을 확인하고 다시 열어 주세요.'));
 }
-if (/[?&]note=/.test(location.search)) tm2Note();else ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
+/* 오답노트 한 권 (?wn=…) — 서버에서 내용과 문항 그림 주소를 받아 이 자리에서 PDF 로 만든다.
+   (예전에는 선생님이 눌러야 구글 문서로 만들어졌다. 2.0 에서는 제출하면 바로 열린다) */
+function tm2Wrong() {
+  const tok = decodeURIComponent((/[?&]wn=([^&]+)/.exec(location.search) || [])[1] || '');
+  const rib = document.getElementById('tm2-ribbon');
+  if (rib) rib.remove();
+  const root = document.getElementById('root');
+  const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const box = (title, text, extra) => {
+    root.innerHTML = '<div style="font-family:\'Noto Sans KR\',sans-serif;max-width:460px;margin:16vh auto;' +
+      'padding:0 20px;text-align:center;color:#0F172A">' +
+      '<div style="font-size:12px;letter-spacing:.2em;color:#2F9FE0;font-weight:700">1ST SCIENCE LAB</div>' +
+      '<h1 style="font-size:21px;margin:10px 0 8px">' + esc(title) + '</h1>' +
+      '<p style="color:#64748B;font-size:14px;line-height:1.7;margin:0">' + esc(text) + '</p>' + (extra || '') + '</div>';
+  };
+  document.title = '오답노트';
+  box('오답노트를 만드는 중입니다', '잠시만 기다려 주세요. 처음 열 때는 조금 더 걸립니다.');
+  const VER = '2';
+  const loadScript = src => new Promise((ok, no) => {
+    const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => no(new Error('script'));
+    document.head.appendChild(el);
+  });
+  const grab = async url => {
+    for (let k = 0; k < 2; k++) {
+      try { const r = await fetch(url); if (r.ok) return new Uint8Array(await r.arrayBuffer()); } catch (e) { /* 한 번 더 */ }
+    }
+    return null;
+  };
+  (async () => {
+    const p = await (await fetch(API_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'getWrongNote', token: tok })
+    })).json();
+    if (!p || !p.success || !p.data) return box('오답노트를 여는 중 문제가 생겼습니다', '잠시 뒤에 다시 열어 주세요.');
+    if (!p.data.ok) return box(p.data.title, p.data.msg);
+    const d = p.data.data;
+    const images = new Map();
+    const want = d.wrong.filter(w => w.image);
+    const lib = loadScript('wn.js?v=' + VER);
+    const raw = n => fetch(n + '?v=' + VER).then(r => { if (!r.ok) throw new Error('font'); return r.text(); });
+    const font = async t => { await lib; return window.TMNote.gunzip(Uint8Array.from(atob((await t).trim()), c => c.charCodeAt(0))); };
+    const [, R, B] = await Promise.all([
+      lib, font(raw('wn-font-r.txt')), font(raw('wn-font-b.txt')),
+      Promise.all(want.filter(w => w.image.url).map(async w => { const b = await grab(w.image.url); if (b) images.set(w.image.key, b); }))
+    ]);
+    const lost = want.filter(w => !images.has(w.image.key)).length;
+    const pdf = await window.TMNote.build({ regular: R, bold: B }, d, images);
+    const pages = 1 + (d.wrong.length ? window.TMNote.paginate(d.wrong).slice(-1)[0].page + 1 : 0);
+    const url = URL.createObjectURL(new Blob([pdf], { type: 'application/pdf' }));
+    const name = p.data.fileName || '오답노트.pdf';
+    document.title = name.replace(/\.pdf$/, '');
+    const btn = 'display:inline-block;margin:6px 5px 0;padding:13px 22px;border-radius:999px;font:700 14px/1 \'Noto Sans KR\',sans-serif;text-decoration:none;';
+    box(d.studentName + ' · ' + d.week + '회차 ' + d.kind + ' 오답노트',
+      '틀린 문항 ' + d.wrong.length + '개 · ' + pages + '쪽' + (lost ? ' · 그림 ' + lost + '개는 불러오지 못했습니다' : ''),
+      '<div style="margin-top:18px">' +
+      '<a id="wn-open" href="' + url + '" target="_blank" rel="noopener" style="' + btn + 'background:#0F4C81;color:#fff">PDF 열기</a>' +
+      '<a id="wn-save" href="' + url + '" download="' + esc(name) + '" style="' + btn + 'background:#fff;color:#0F4C81;border:1.5px solid #0F4C81">저장하기</a></div>' +
+      '<p style="color:#94A3B8;font-size:12px;margin-top:16px">이 창을 닫으면 다시 눌러 새로 만들 수 있습니다.</p>');
+    window.__tm2WrongNote = { bytes: pdf.length, pages: pages, wrong: d.wrong.length, lost: lost };
+  })().catch(() => box('오답노트를 만드는 중 문제가 생겼습니다', '인터넷 연결을 확인하고 다시 열어 주세요.'));
+}
+if (/[?&]note=/.test(location.search)) tm2Note();else if (/[?&]wn=/.test(location.search)) tm2Wrong();else ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
 </script>
 <style>@media (max-width:560px){.hide-sm{display:none}}</style>
 </body>
