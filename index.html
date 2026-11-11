@@ -148,7 +148,7 @@ const LIVE = true;
 const API_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/api';   /* 2.0 — Supabase 서버 함수 */
 const ADMIN_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/admin';   /* 2.0 — 관리자 화면이 부르는 서버 함수 */
 const MANAGE_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/manage';   /* 2.0 — 관리자가 고치는 서버 함수 (명단 관리) */
-const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent'];
+const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent', 'adminNoteBoard'];
 const tm2Url = a => TM2_MANAGE.indexOf(a) >= 0 ? MANAGE_URL : (/^admin/.test(a) && a !== 'adminLogin' && a !== 'adminSetPassword') || a === 'getInquiries' || a === 'clinicAdminList' || a === 'getNotice' ? ADMIN_URL : API_URL;
 function normPhone(v) {
   let d = String(v || '').replace(/[^0-9]/g, '');
@@ -7692,6 +7692,54 @@ function AdmVideoNote({
     toast: toast
   }));
 }
+function Tm2Notes({ classes, maxSession, toast }) {
+  const h = React.createElement;
+  const [cls, setCls] = useState(classes[0] ? classes[0].className : '');
+  const [week, setWeek] = useState(1);
+  const [kind, setKind] = useState('과제물');
+  const [d, setD] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(() => {
+    if (!cls) return;
+    setBusy(true);
+    setD(null);
+    api('adminNoteBoard', { className: cls, week, kind }).then(setD).catch(e => toast(e.message, 'err')).finally(() => setBusy(false));
+  }, [cls, week, kind, toast]);
+  useEffect(load, [load]);
+  const studs = d && Array.isArray(d.students) ? d.students : [];
+  return h("div", null,
+    h("div", { className: "card pad-s", style: { marginBottom: 14, background: 'var(--sky-l)', boxShadow: 'none' } },
+      h("div", { style: { fontSize: 13, color: 'var(--navy)', lineHeight: 1.7 } },
+        "오답노트는 ", h("b", null, "따로 만들지 않아도 됩니다."), " 학생이 제출하면 틀린 문항만 모은 노트가 마이페이지에 바로 생기고, 누르는 그 자리에서 PDF 가 됩니다. 여기서는 누가 몇 문항을 틀렸는지 보고, [열기] 로 그 학생의 노트를 같은 모습으로 볼 수 있습니다.")),
+    h("div", { className: "grid g4", style: { marginBottom: 14 } },
+      h(ClassPick, { classes: classes, value: cls, onChange: setCls }),
+      h(WeekPick, { max: maxSession, value: week, onChange: setWeek }),
+      h(Field, { label: "구분" }, h(Sel, { value: kind, onChange: setKind, options: [['과제물', '과제물'], ['데일리테스트', '데일리 테스트']] })),
+      h("div", { style: { display: 'flex', alignItems: 'flex-end', gap: 8 } },
+        h(Btn, { v: "o", full: true, busy: busy, onClick: load }, h(Icon, { n: "refresh", s: 15 }), " 불러오기"))),
+    busy && !d && h(Loading, null),
+    d && h(React.Fragment, null,
+      h("div", { className: "grid g4 keep", style: { marginBottom: 14 } },
+        h(Kpi, { label: "제출한 학생", value: d.submitted, unit: "명", sub: '전체 ' + studs.length + '명' }),
+        h(Kpi, { label: "오답노트가 있는 학생", value: d.target, unit: "명", sub: "틀린 문항이 있는 학생" }),
+        h(Kpi, { label: "다 맞은 학생", value: Math.max(0, d.submitted - d.target), unit: "명", sub: "노트가 필요 없습니다" }),
+        h(Kpi, { label: "아직 안 낸 학생", value: Math.max(0, studs.length - d.submitted), unit: "명", sub: "제출하면 바로 생깁니다" })),
+      studs.length === 0 ? h(Empty, null, "이 반에 학생이 없습니다.") : h("div", { className: "tw" },
+        h("table", null,
+          h("thead", null, h("tr", null,
+            h("th", { className: "l", style: { minWidth: 90 } }, "학생"), h("th", null, "제출"), h("th", null, "점수"), h("th", null, "틀린 문항"),
+            h("th", { style: { minWidth: 120 } }, "오답노트"))),
+          h("tbody", null, studs.map(s => h("tr", { key: s.name },
+            h("td", { className: "l", style: { fontWeight: 700 } }, s.name),
+            h("td", null, s.submitted ? h("span", { className: "tag t-ok" }, "제출") : h("span", { className: "tag t-gy" }, "미제출")),
+            h("td", { style: { fontWeight: 700 } }, s.score === null ? '–' : s.score),
+            h("td", { style: { fontWeight: 700, color: s.wrong ? 'var(--no)' : 'var(--mute)' } }, s.wrong || '–'),
+            h("td", null, s.url
+              ? h("button", { className: "btn btn-o btn-xs", onClick: () => window.open(s.url, '_blank') }, h(Icon, { n: "out", s: 13 }), " 열기")
+              : s.submitted ? h("span", { style: { color: 'var(--mute)', fontSize: 12 } }, "다 맞음") : h("span", { style: { color: 'var(--mute)' } }, "–"))))))),
+      h("p", { style: { fontSize: 12, color: 'var(--sub)', marginTop: 10, marginBottom: 0 } },
+        "[열기] 를 누르면 새 창에서 그 학생의 오답노트(PDF)가 만들어집니다. 학생이 다시 제출하면 노트도 가장 나중 제출 기준으로 바뀝니다.")));
+}
 function Tm2Roster({ toast, reload }) {
   const h = React.createElement;
   const [d, setD] = useState(null);
@@ -7823,7 +7871,7 @@ function PageAdmin({
     classes: classes,
     maxSession: maxSession,
     toast: toast
-  }), tab === 'notes' && React.createElement(AdmNotes, {
+  }), tab === 'notes' && React.createElement(Tm2Notes, {
     classes: classes,
     maxSession: maxSession,
     toast: toast
