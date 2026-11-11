@@ -147,7 +147,9 @@ const SECTION_LABEL = {
 const LIVE = true;
 const API_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/api';   /* 2.0 — Supabase 서버 함수 */
 const ADMIN_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/admin';   /* 2.0 — 관리자 화면이 부르는 서버 함수 */
-const tm2Url = a => (/^admin/.test(a) && a !== 'adminLogin' && a !== 'adminSetPassword') || a === 'getInquiries' || a === 'clinicAdminList' || a === 'getNotice' ? ADMIN_URL : API_URL;
+const MANAGE_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/manage';   /* 2.0 — 관리자가 고치는 서버 함수 (명단 관리) */
+const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent'];
+const tm2Url = a => TM2_MANAGE.indexOf(a) >= 0 ? MANAGE_URL : (/^admin/.test(a) && a !== 'adminLogin' && a !== 'adminSetPassword') || a === 'getInquiries' || a === 'clinicAdminList' || a === 'getNotice' ? ADMIN_URL : API_URL;
 function normPhone(v) {
   let d = String(v || '').replace(/[^0-9]/g, '');
   if (d.length === 10 && d[0] === '1') d = '0' + d;
@@ -7690,6 +7692,94 @@ function AdmVideoNote({
     toast: toast
   }));
 }
+function Tm2Roster({ toast, reload }) {
+  const h = React.createElement;
+  const [d, setD] = useState(null);
+  const [err, setErr] = useState('');
+  const [view, setView] = useState('active');
+  const [cls, setCls] = useState('');
+  const [dlg, setDlg] = useState(null);      /* { kind: 'edit' | 'out' | 'move' | 'back', row, f } */
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(() => {
+    api('adminRoster').then(r => { setD(r); setErr(''); }).catch(e => setErr(e.message || '명단을 불러오지 못했습니다.'));
+  }, []);
+  useEffect(load, [load]);
+  const today = () => { const t = new Date(Date.now() + 9 * 3600 * 1000); return t.toISOString().slice(0, 10); };
+  const open = (kind, row) => setDlg({ kind, row, f: kind === 'edit'
+    ? { name: row.name, sPhone: fmtPhone(row.sPhone), pName: fmtPhone(row.pPhone), grade: row.grade, school: row.school, startWeek: row.startWeek ? String(row.startWeek) : '', openWeeks: (row.openWeeks || []).join(', ') }
+    : kind === 'out' ? { day: today(), reason: '' } : kind === 'move' ? { toClassName: '', startWeek: '' } : {} });
+  const setF = (k, v) => setDlg(x => Object.assign({}, x, { f: Object.assign({}, x.f, { [k]: v }) }));
+  const run = async () => {
+    if (!dlg || busy) return;
+    const act = { edit: 'adminUpdateStudent', out: 'adminWithdrawStudent', move: 'adminMoveStudent', back: 'adminRestoreStudent' }[dlg.kind];
+    const done = { edit: '고쳤습니다.', out: '퇴원 처리했습니다.', move: '반을 옮겼습니다.', back: '다시 등록했습니다.' }[dlg.kind];
+    if (dlg.kind === 'move' && !dlg.f.toClassName) return toast('옮겨 갈 반을 골라 주세요.', 'err');
+    setBusy(true);
+    try {
+      await api(act, Object.assign({ id: dlg.row.id }, dlg.f));
+      toast(dlg.row.name + ' — ' + done, 'ok');
+      setDlg(null);
+      load();
+      if (reload) reload();
+    } catch (e) {
+      toast(e.message || '처리하지 못했습니다.', 'err');
+    }
+    setBusy(false);
+  };
+  const card = kids => h("div", { className: "card", id: "tm2-roster", style: { marginTop: 14 } },
+    h("div", { className: "card-h" }, h("div", { className: "card-t" }, "명단 관리"), h("span", { className: "tag t-gy" }, "새 홈페이지 · 재원생과 퇴원생을 한 곳에서")), kids);
+  if (err) return card(h(Empty, null, err));
+  if (!d) return card(h(Loading, null));
+  const canOf = {};
+  (d.classes || []).forEach(c => { canOf[c.className] = !!c.canEdit; });
+  const rows = (view === 'active' ? d.active : d.left).filter(r => !cls || r.className === cls);
+  const inp = (k, ph, type) => h("input", { className: "inp", type: type || 'text', value: dlg.f[k] || '', placeholder: ph || '', onChange: e => setF(k, e.target.value) });
+  const who = dlg ? dlg.row.className + ' · ' + dlg.row.name : '';
+  return card(h("div", null,
+    !d.canEditReal && h("p", { style: { fontSize: 12.5, color: 'var(--mute)', margin: '0 0 12px', lineHeight: 1.7 } },
+      "실제 반의 명단은 새 홈페이지로 넘어가는 날부터 여기서 고칩니다. 그 전에는 시험반만 고칠 수 있습니다."),
+    h("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 } },
+      h("div", { style: { minWidth: 220 } }, h(Tabs, { items: [['active', '재원생 ' + d.active.length], ['left', '퇴원생 ' + d.left.length]], value: view, onChange: setView })),
+      h("div", { style: { minWidth: 200, flex: '0 1 320px' } }, h(Sel, { value: cls, onChange: setCls, placeholder: '모든 반', options: (d.classes || []).map(c => c.className) }))),
+    rows.length === 0 ? h(Empty, null, view === 'active' ? '재원생이 없습니다.' : '퇴원생이 없습니다.') :
+    h("div", { className: "tw" }, h("table", null,
+      h("thead", null, h("tr", null,
+        view === 'left' && h("th", null, "퇴원일"), h("th", { className: "l" }, "반"), h("th", { className: "l" }, "이름"), h("th", null, "학생 번호"), h("th", null, "학부모 번호"),
+        h("th", null, "학년 · 학교"), view === 'active' ? h("th", null, "시작 회차") : h("th", { className: "l" }, "사유"), h("th", null, ""))),
+      h("tbody", null, rows.map(r => h("tr", { key: r.id },
+        view === 'left' && h("td", { style: { whiteSpace: 'nowrap' } }, r.leftOn || '–'),
+        h("td", { className: "l", style: { color: 'var(--sub)' } }, r.className, r.kind === '영상만' && h("span", { className: "tag t-gy", style: { marginLeft: 6 } }, "영상만")),
+        h("td", { className: "l", style: { fontWeight: 700 } }, r.name),
+        h("td", { style: { whiteSpace: 'nowrap' } }, fmtPhone(r.sPhone) || '–'),
+        h("td", { style: { whiteSpace: 'nowrap' } }, fmtPhone(r.pPhone) || '–'),
+        h("td", { style: { color: 'var(--sub)' } }, [r.grade, r.school].filter(Boolean).join(' · ') || '–'),
+        view === 'active' ? h("td", null, r.startWeek ? r.startWeek + '회차부터' : '처음부터') : h("td", { className: "l", style: { color: 'var(--sub)', fontSize: 12.5 } }, r.reason || '–'),
+        h("td", { style: { whiteSpace: 'nowrap' } }, !canOf[r.className] && view === 'active' ? h("span", { className: "tag t-gy" }, "보기만") :
+          view === 'active' ? h("span", { style: { display: 'inline-flex', gap: 4 } },
+            h(Btn, { v: 'o', size: 'xs', onClick: () => open('edit', r) }, "수정"),
+            r.kind === '정규' && h(Btn, { v: 'o', size: 'xs', onClick: () => open('move', r) }, "반 이동"),
+            h(Btn, { v: 'o', size: 'xs', onClick: () => open('out', r) }, "퇴원"))
+          : (canOf[r.className] ? h(Btn, { v: 'o', size: 'xs', onClick: () => open('back', r) }, "재등록") : h("span", { className: "tag t-gy" }, "보기만")))))))),
+    h(Modal, { open: !!dlg, onClose: () => { if (!busy) setDlg(null); }, title: dlg ? { edit: '학생 정보 수정', out: '퇴원 처리', move: '반 이동', back: '재등록' }[dlg.kind] : '' },
+      dlg && h("div", null,
+        h("p", { style: { margin: '0 0 14px', fontWeight: 700 } }, who),
+        dlg.kind === 'edit' && h("div", null,
+          h(Field, { label: '이름' }, inp('name')), h(Field, { label: '학생 전화번호' }, inp('sPhone', '010-1234-5678', 'tel')),
+          h(Field, { label: '학부모 전화번호' }, inp('pName', '010-1234-5678', 'tel')), h(Field, { label: '학년' }, inp('grade', '고1')), h(Field, { label: '학교' }, inp('school')),
+          h(Field, { label: '수강 시작 회차 (비우면 처음부터)' }, inp('startWeek', '예: 3')), h(Field, { label: '따로 열어 준 회차' }, inp('openWeeks', '예: 1, 2'))),
+        dlg.kind === 'out' && h("div", null,
+          h(Field, { label: '퇴원일' }, inp('day', '', 'date')), h(Field, { label: '사유 (비워도 됩니다)' }, inp('reason', '예: 이사')),
+          h("p", { style: { fontSize: 12.5, color: 'var(--mute)', lineHeight: 1.7 } }, "지우는 것이 아니라 퇴원생으로 옮깁니다. 제출 기록은 그대로 남고, 언제든 [재등록] 으로 되돌릴 수 있습니다.")),
+        dlg.kind === 'move' && h("div", null,
+          h(Field, { label: '옮겨 갈 반' }, h(Sel, { value: dlg.f.toClassName, onChange: v => setF('toClassName', v), placeholder: '반을 고르세요',
+            options: (d.classes || []).filter(c => c.canEdit && c.className !== dlg.row.className).map(c => c.className) })),
+          h(Field, { label: '새 반의 수강 시작 회차 (비우면 처음부터)' }, inp('startWeek', '예: 3')),
+          h("p", { style: { fontSize: 12.5, color: 'var(--mute)', lineHeight: 1.7 } }, "지금 반에는 '반 이동' 으로 기록이 남습니다.")),
+        dlg.kind === 'back' && h("p", { style: { fontSize: 13.5, lineHeight: 1.7 } }, "이 학생을 다시 수강 중으로 돌립니다."),
+        h("div", { style: { display: 'flex', gap: 8, marginTop: 16 } },
+          h(Btn, { v: 'o', full: true, onClick: () => { if (!busy) setDlg(null); } }, "취소"),
+          h(Btn, { full: true, busy: busy, onClick: run }, { edit: '저장', out: '퇴원 처리', move: '옮기기', back: '재등록' }[dlg.kind]))))));
+}
 function PageAdmin({
   boot,
   toast,
@@ -7761,6 +7851,9 @@ function PageAdmin({
   }), tab === 'students' && React.createElement(AdmStudents, {
     classes: classes,
     maxSession: maxSession,
+    toast: toast,
+    reload: reload
+  }), tab === 'students' && React.createElement(Tm2Roster, {
     toast: toast,
     reload: reload
   }), tab === 'clinic' && React.createElement(AdmClinic, {
