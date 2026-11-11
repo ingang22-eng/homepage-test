@@ -9069,7 +9069,7 @@ function tm2Wrong() {
   };
   document.title = '오답노트';
   box('오답노트를 만드는 중입니다', '잠시만 기다려 주세요. 처음 열 때는 조금 더 걸립니다.');
-  const VER = '2';
+  const VER = '3';
   const loadScript = src => new Promise((ok, no) => {
     const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => no(new Error('script'));
     document.head.appendChild(el);
@@ -9081,6 +9081,7 @@ function tm2Wrong() {
     return null;
   };
   (async () => {
+    const t0 = Date.now();
     const p = await (await fetch(API_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'getWrongNote', token: tok })
@@ -9098,6 +9099,7 @@ function tm2Wrong() {
       Promise.all(want.filter(w => w.image.url).map(async w => { const b = await grab(w.image.url); if (b) images.set(w.image.key, b); }))
     ]);
     const lost = want.filter(w => !images.has(w.image.key)).length;
+    const t1 = Date.now();
     const pdf = await window.TMNote.build({ regular: R, bold: B }, d, images);
     const pages = 1 + (d.wrong.length ? window.TMNote.paginate(d.wrong).slice(-1)[0].page + 1 : 0);
     const url = URL.createObjectURL(new Blob([pdf], { type: 'application/pdf' }));
@@ -9110,7 +9112,7 @@ function tm2Wrong() {
       '<a id="wn-open" href="' + url + '" target="_blank" rel="noopener" style="' + btn + 'background:#0F4C81;color:#fff">PDF 열기</a>' +
       '<a id="wn-save" href="' + url + '" download="' + esc(name) + '" style="' + btn + 'background:#fff;color:#0F4C81;border:1.5px solid #0F4C81">저장하기</a></div>' +
       '<p style="color:#94A3B8;font-size:12px;margin-top:16px">이 창을 닫으면 다시 눌러 새로 만들 수 있습니다.</p>');
-    window.__tm2WrongNote = { bytes: pdf.length, pages: pages, wrong: d.wrong.length, lost: lost };
+    window.__tm2WrongNote = { bytes: pdf.length, pages: pages, wrong: d.wrong.length, lost: lost, ms: Date.now() - t0, buildMs: Date.now() - t1 };
   })().catch(() => box('오답노트를 만드는 중 문제가 생겼습니다', '인터넷 연결을 확인하고 다시 열어 주세요.'));
 }
 if (/[?&]note=/.test(location.search)) tm2Note();else if (/[?&]wn=/.test(location.search)) tm2Wrong();else ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
