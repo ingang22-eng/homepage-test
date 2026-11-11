@@ -1840,7 +1840,16 @@ function PageReport({
     className: "cp"
   }, w.concept)), React.createElement("span", {
     className: "ct tag t-no"
-  }, w.count, "문항"))))), [['이번 회차 과제물 문항별', d.detail.assign], ['이번 회차 데일리 테스트 문항별', d.detail.daily]].map(([t, list]) => list && list.length ? React.createElement("div", {
+  }, w.count, "문항"))))), Array.isArray(d.formStat) && d.formStat.length > 0 && React.createElement("div", { className: "card", style: { marginBottom: 14 } },
+    React.createElement("div", { className: "card-h" }, React.createElement("div", { className: "card-t" }, "유형별 정답률"), React.createElement("span", { className: "tag t-gy" }, "문제 형태 기준")),
+    React.createElement("div", { className: "tw" }, React.createElement("table", null,
+      React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", { className: "l" }, "유형"), React.createElement("th", null, "맞은 문항"), React.createElement("th", null, "내 정답률"), React.createElement("th", null, "반 정답률"))),
+      React.createElement("tbody", null, d.formStat.map((g, i) => React.createElement("tr", { key: i },
+        React.createElement("td", { className: "l", style: { fontWeight: 700 } }, g.key),
+        React.createElement("td", { style: { color: 'var(--sub)' } }, g.ok, " / ", g.n),
+        React.createElement("td", null, React.createElement("span", { className: 'tag ' + (g.rate === null ? 't-gy' : g.rate >= 80 ? 't-ok' : g.rate >= 50 ? 't-wa' : 't-no') }, pct(g.rate))),
+        React.createElement("td", { style: { color: 'var(--sub)' } }, pct(g.classRate)))))))),
+  [['이번 회차 과제물 문항별', d.detail.assign], ['이번 회차 데일리 테스트 문항별', d.detail.daily]].map(([t, list]) => list && list.length ? React.createElement("div", {
     className: "card",
     style: {
       marginBottom: 14
@@ -1858,7 +1867,7 @@ function PageReport({
     className: "l"
   }, "문항"), React.createElement("th", {
     className: "l"
-  }, "단원"), React.createElement("th", null, "난이도"), React.createElement("th", null, "반 정답률"), React.createElement("th", null, "정오"))), React.createElement("tbody", null, list.map((r, i) => React.createElement("tr", {
+  }, "단원"), list.some(x => x.form) && React.createElement("th", null, "유형"), React.createElement("th", null, "난이도"), React.createElement("th", null, "반 정답률"), React.createElement("th", null, "정오"))), React.createElement("tbody", null, list.map((r, i) => React.createElement("tr", {
     key: i
   }, React.createElement("td", {
     className: "l",
@@ -1870,7 +1879,7 @@ function PageReport({
     style: {
       color: 'var(--sub)'
     }
-  }, r.unit || '–'), React.createElement("td", null, r.level ? React.createElement("span", {
+  }, r.unit || '–'), list.some(x => x.form) && React.createElement("td", { style: { color: 'var(--sub)', whiteSpace: 'nowrap' } }, r.form || '–'), React.createElement("td", null, r.level ? React.createElement("span", {
     className: 'tag ' + (r.level === '상' ? 't-no' : r.level === '중' ? 't-wa' : 't-sk')
   }, r.level) : '–'), React.createElement("td", {
     style: {
@@ -9069,7 +9078,7 @@ function tm2Wrong() {
   };
   document.title = '오답노트';
   box('오답노트를 만드는 중입니다', '잠시만 기다려 주세요. 처음 열 때는 조금 더 걸립니다.');
-  const VER = '3';
+  const VER = '4';
   const loadScript = src => new Promise((ok, no) => {
     const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => no(new Error('script'));
     document.head.appendChild(el);
