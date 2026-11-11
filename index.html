@@ -148,7 +148,7 @@ const LIVE = true;
 const API_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/api';   /* 2.0 — Supabase 서버 함수 */
 const ADMIN_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/admin';   /* 2.0 — 관리자 화면이 부르는 서버 함수 */
 const MANAGE_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/manage';   /* 2.0 — 관리자가 고치는 서버 함수 (명단 관리) */
-const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent', 'adminNoteBoard'];
+const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent', 'adminNoteBoard', 'adminClassNoteBoard'];
 const tm2Url = a => TM2_MANAGE.indexOf(a) >= 0 ? MANAGE_URL : (/^admin/.test(a) && a !== 'adminLogin' && a !== 'adminSetPassword') || a === 'getInquiries' || a === 'clinicAdminList' || a === 'getNotice' ? ADMIN_URL : API_URL;
 function normPhone(v) {
   let d = String(v || '').replace(/[^0-9]/g, '');
@@ -5823,6 +5823,9 @@ function AdmClinic({
   toast
 }) {
   const [ac, setAc] = useState('시대인재');
+  const [old, setOld] = useState(false);
+  const tm2Cut = useMemo(() => { const t = new Date(Date.now() + 9 * 3600 * 1000); t.setUTCDate(1); t.setUTCMonth(t.getUTCMonth() - 2); const last = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 0)).getUTCDate(); t.setUTCDate(Math.min(new Date(Date.now() + 9 * 3600 * 1000).getUTCDate(), last)); return t.toISOString().slice(0, 10); }, []);
+
   const [kind, setKind] = useState('');
   const [d, setD] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -5841,8 +5844,10 @@ function AdmClinic({
     (d.list || []).forEach(r => {
       (m[r.date] = m[r.date] || []).push(r);
     });
-    return Object.keys(m).sort().reverse().map(k => [k, m[k]]);
-  }, [d]);
+    return Object.keys(m).sort().reverse().filter(k => old ? k < tm2Cut : k >= tm2Cut).map(k => [k, m[k]]);
+  }, [d, old, tm2Cut]);
+  const tm2Rows = d ? (d.list || []).filter(r => old ? r.date < tm2Cut : r.date >= tm2Cut) : [];
+  const tm2Past = d ? (d.list || []).filter(r => r.date < tm2Cut).length : 0;
   return React.createElement("div", null, React.createElement("div", {
     className: "grid g3",
     style: {
@@ -5873,7 +5878,7 @@ function AdmClinic({
   }, React.createElement(Icon, {
     n: "refresh",
     s: 15
-  }), " 새로고침"))), d && (d.count > 0 || d.forceCount > 0) && React.createElement("div", {
+  }), " 새로고침"))), d && (d.count > 0 || d.forceCount > 0 || tm2Past > 0) && React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
@@ -5882,9 +5887,13 @@ function AdmClinic({
     }
   }, React.createElement("span", {
     className: "tag t-sk"
-  }, "전체 ", d.count || 0, "건"), d.forceCount > 0 && React.createElement("span", {
+  }, old ? "지나간 신청 " : "최근 2개월 ", tm2Rows.length, "건"), tm2Rows.filter(r => r.kind === '강제').length > 0 && React.createElement("span", {
     className: "tag t-no"
-  }, "선생님 요청 ", d.forceCount, "건")), busy && React.createElement(Loading, null), d && (byDate.length === 0 ? React.createElement(Empty, null, "신청 내역이 없습니다.") : byDate.map(([date, rows]) => React.createElement("div", {
+  }, "선생님 요청 ", tm2Rows.filter(r => r.kind === '강제').length, "건"), (tm2Past > 0 || old) && React.createElement("button", {
+    className: "btn btn-g btn-xs",
+    style: { marginLeft: 'auto' },
+    onClick: () => setOld(!old)
+  }, old ? "← 최근 신청 보기" : "지나간 신청 " + tm2Past + "건 보기")), busy && React.createElement(Loading, null), d && (byDate.length === 0 ? React.createElement(Empty, null, old ? "지나간 신청이 없습니다." : (tm2Past > 0 ? "최근 2개월 안의 신청이 없습니다. (지나간 신청 " + tm2Past + "건)" : "신청 내역이 없습니다.")) : byDate.map(([date, rows]) => React.createElement("div", {
     className: "card",
     style: {
       marginBottom: 12
