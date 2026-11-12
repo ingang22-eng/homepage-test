@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>1st SCIENCE LAB</title>
+</head>
+<body style="margin:0;background:#f6f7f9">
+<div id="tm2-learn" style="padding:72px 20px;text-align:center;color:#55606e;font:500 15px/1.7 'Noto Sans KR',sans-serif">
+<p id="tm2-learn-m" style="margin:0">불러오는 중입니다…</p>
+<p id="tm2-learn-h" style="margin:22px 0 0;display:none"><a href="./" style="display:inline-block;padding:13px 24px;border-radius:999px;background:#0F4C81;color:#fff;text-decoration:none;font-weight:700;font-size:14px">홈페이지로 가기</a></p>
+</div>
+<script>
+/* Science Trackman 2.0 — 학습 페이지 (수업 영상 찾기 · 개념 노트 · 영상 보기).
+   서버(manage 의 learnPage)가 운영과 같은 화면을 만들어 주고, 여기서는 받아서 그대로 펼친다.
+   다른 스크립트와 이름이 겹치지 않도록 이 문서에는 이 스크립트 하나만 둔다. */
+(function () {
+  var URL_ = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/manage';
+  var q = new URLSearchParams(location.search), b = { action: 'learnPage' };
+  ['p', 'k', 't', 'm', 'v', 'token'].forEach(function (n) { var x = q.get(n); if (x !== null) b[n] = x; });
+  function fail(msg) {
+    document.getElementById('tm2-learn-m').textContent = msg;
+    document.getElementById('tm2-learn-h').style.display = '';
+  }
+  if (!b.p) { fail('주소가 올바르지 않습니다.'); return; }
+  fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (!j || !j.success || !j.data || typeof j.data.html !== 'string') { fail((j && j.message) || '페이지를 불러오지 못했습니다.'); return; }
+      var title = j.data.title;
+      document.open(); document.write(j.data.html); document.close();
+      if (title) document.title = title;
+    })
+    .catch(function () { fail('페이지를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 열어 주세요.'); });
+})();
+</script>
+</body>
+</html>
