@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>홈페이지 이용 안내 · 1st SCIENCE LAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --navy: #0F4C81; --deep: #0b2f52; --ink: #17212b; --sub: #55606e; --line: #e3e8ee; --bg: #f6f7f9; --card: #fff; --accent: #1f7fc4; --warn: #9a5b00; --warnbg: #fff6e5; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.75 'Noto Sans KR', system-ui, sans-serif; word-break: keep-all; overflow-wrap: anywhere; }
+  a { color: var(--navy); }
+  .top { background: linear-gradient(135deg, var(--deep), var(--navy) 60%, #1b6fb0); color: #fff; padding: 44px 20px 40px; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .brand { font-weight: 900; letter-spacing: .02em; font-size: 15px; opacity: .92; }
+  h1 { margin: 10px 0 8px; font-size: 30px; line-height: 1.3; font-weight: 900; letter-spacing: -.01em; }
+  .top p { margin: 0; opacity: .9; font-size: 15.5px; }
+  .go { display: inline-block; margin-top: 22px; background: #fff; color: var(--navy); font-weight: 700; text-decoration: none; padding: 13px 22px; border-radius: 999px; font-size: 15.5px; }
+  main { padding: 26px 20px 60px; }
+  .notice { background: var(--warnbg); border: 1px solid #f1d9a6; color: var(--warn); border-radius: 14px; padding: 14px 16px; font-size: 14.5px; font-weight: 500; margin-bottom: 22px; }
+  .notice b { font-weight: 700; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px 22px; margin-bottom: 16px; }
+  .step { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; }
+  .num { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--navy); color: #fff; font-weight: 900; display: grid; place-items: center; font-size: 16px; }
+  h2 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: -.01em; }
+  section p { margin: 8px 0; color: var(--ink); }
+  .sub { color: var(--sub); font-size: 14.5px; }
+  /* 화면 그림 */
+  .shot { margin: 16px 0 6px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fbfcfd; }
+  .bar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #fff; border-bottom: 1px solid var(--line); }
+  .logo { font-weight: 900; font-size: 15px; white-space: nowrap; }
+  .logo span { color: var(--navy); }
+  .menu { display: flex; gap: 12px; font-size: 12.5px; color: var(--sub); overflow: hidden; white-space: nowrap; flex: 1; min-width: 0; }
+  .btn { flex: none; background: var(--navy); color: #fff; font-weight: 700; font-size: 13px; padding: 7px 14px; border-radius: 10px; position: relative; }
+  .ring { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #e5484d; }
+  .body { padding: 16px 14px; }
+  .box { max-width: 300px; margin: 0 auto; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tab { flex: 1; text-align: center; font-size: 13px; padding: 7px 0; border-radius: 9px; background: #eef1f5; color: var(--sub); font-weight: 700; }
+  .tab.on { background: var(--navy); color: #fff; }
+  .lab { font-size: 12px; color: var(--sub); margin: 8px 0 4px; font-weight: 500; }
+  .inp { border: 1px solid #cfd7e0; border-radius: 9px; padding: 9px 11px; font-size: 14px; color: #8a94a1; background: #fff; }
+  .chk { display: flex; gap: 14px; font-size: 12.5px; color: var(--sub); margin: 10px 0; }
+  .chk i { display: inline-block; width: 13px; height: 13px; border: 1.5px solid #9aa5b1; border-radius: 3px; vertical-align: -2px; margin-right: 5px; }
+  .full { text-align: center; background: var(--navy); color: #fff; font-weight: 700; border-radius: 10px; padding: 10px; font-size: 14px; }
+  .cap { font-size: 13px; color: var(--sub); padding: 0 14px 12px; text-align: center; }
+  /* 메뉴 목록 */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .item { border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: #fbfcfd; }
+  .item b { display: block; font-size: 15.5px; margin-bottom: 2px; }
+  .item span { font-size: 14px; color: var(--sub); line-height: 1.6; display: block; }
+  dl { margin: 6px 0 0; }
+  dt { font-weight: 700; margin-top: 14px; }
+  dd { margin: 4px 0 0; color: var(--sub); font-size: 15px; }
+  footer { text-align: center; color: var(--sub); font-size: 13px; padding: 8px 20px 40px; }
+  @media (max-width: 520px) { h1 { font-size: 25px; } .grid { grid-template-columns: 1fr; } section { padding: 20px 16px; } .menu { display: none; } }
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap">
+  <div class="brand">1st SCIENCE LAB · 차병건 1등 과학 연구소</div>
+  <h1>홈페이지 이용 안내</h1>
+  <p>새 주소 <b>no1science.com</b> 에서 과제물 제출부터 성적 확인까지 한곳에서 할 수 있습니다.</p>
+  <a class="go" href="https://no1science.com/">홈페이지 열기 →</a>
+</div></div>
+
+<main><div class="wrap">
+  <div class="notice"><b>이전 홈페이지 주소는 더 이상 쓰지 않습니다.</b> 과제물은 새 주소(no1science.com)로 접속해서 제출해 주세요. 지금까지의 제출 기록과 성적은 모두 그대로 옮겨져 있습니다.</div>
+
+  <section>
+    <div class="step"><div class="num">1</div><h2>접속하기</h2></div>
+    <p>휴대폰이나 컴퓨터의 인터넷 창 주소 칸에 <b>no1science.com</b> 을 입력합니다. 문자에 있는 주소를 눌러도 됩니다.</p>
+    <p class="sub">자주 쓰는 학생은 휴대폰 홈 화면에 추가해 두면 편합니다. (아이폰 : 공유 단추 → 홈 화면에 추가 · 안드로이드 : 오른쪽 위 ⋮ → 홈 화면에 추가)</p>
+  </section>
+
+  <section>
+    <div class="step"><div class="num">2</div><h2>로그인하기</h2></div>
+    <p>화면 오른쪽 위의 <b>[로그인]</b> 을 누릅니다.</p>
+    <div class="shot" aria-hidden="true">
+      <div class="bar"><div class="logo">1st <span>SCIENCE LAB</span></div><div class="menu"><span>선생님 소개</span><span>수업 시간</span><span>수업 소개</span><span>동영상 수업</span><span>클리닉</span></div><div class="btn ring">로그인</div></div>
+      <div class="cap" style="padding-top:12px">오른쪽 위 [로그인] 단추</div>
+    </div>
+    <p style="margin-top:16px"><b>[학생]</b> 탭에서 <b>이름</b>과 <b>학생 본인 휴대폰 번호</b>를 적고 [로그인] 을 누릅니다. 따로 가입하거나 비밀번호를 만들 필요가 없습니다.</p>
+    <div class="shot" aria-hidden="true">
+      <div class="body"><div class="box">
+        <div class="tabs"><div class="tab on">학생</div><div class="tab">관리자</div></div>
+        <div class="lab">이름</div><div class="inp">홍길동</div>
+        <div class="lab">전화번호</div><div class="inp">010-1234-5678</div>
+        <div class="chk"><span><i></i>이름 기억하기</span><span><i></i>로그인 유지하기</span></div>
+        <div class="full">로그인</div>
+      </div></div>
+      <div class="cap">학원에 등록한 학생 이름 · 학생 휴대폰 번호</div>
+    </div>
+    <p class="sub" style="margin-top:14px">· <b>이름 기억하기</b> — 다음부터 이름이 미리 적혀 있습니다.<br>· <b>로그인 유지하기</b> — 창을 닫았다 열어도 로그인된 상태로 들어갑니다. 본인 휴대폰에서만 켜 주세요.<br>· 학부모님도 <b>학생 이름과 학생 휴대폰 번호</b>로 같은 화면을 보실 수 있습니다.</p>
+  </section>
+
+  <section>
+    <div class="step"><div class="num">3</div><h2>홈페이지 메뉴</h2></div>
+    <p>로그인하면 <b>마이페이지</b>가 열립니다. 회차별로 아래 내용을 볼 수 있습니다.</p>
+    <div class="grid">
+      <div class="item"><b>과제물 제출</b><span>회차를 고르고 문항마다 맞음·틀림을 표시해 제출합니다. 제출하면 바로 채점 결과가 나옵니다.</span></div>
+      <div class="item"><b>데일리 테스트 제출</b><span>수업 시간에 본 테스트의 답을 적어 제출합니다.</span></div>
+      <div class="item"><b>성적표</b><span>회차별 점수, 반 평균, 단원별로 약한 부분을 볼 수 있습니다.</span></div>
+      <div class="item"><b>오답노트</b><span>틀린 문항만 모은 노트를 열어 보고 PDF 로 받을 수 있습니다.</span></div>
+      <div class="item"><b>수업 노트</b><span>그 회차 수업 내용을 정리한 노트입니다.</span></div>
+      <div class="item"><b>동영상 수업</b><span>회차별 수업 영상을 다시 볼 수 있습니다. 위쪽 메뉴의 [동영상 수업] 에서도 열립니다.</span></div>
+      <div class="item"><b>클리닉 신청</b><span>위쪽 메뉴의 [클리닉] 에서 날짜와 시간을 골라 신청합니다.</span></div>
+      <div class="item"><b>수업 시간 · 수업 소개</b><span>로그인하지 않아도 시간표와 수업 안내를 볼 수 있습니다.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="step"><div class="num">4</div><h2>수업 공지 받기</h2></div>
+    <p>수업 공지와 성적 안내는 <b>카카오톡 채널 알림톡</b>으로 보내 드립니다. 알림톡의 단추를 누르면 그 회차 안내 화면이 바로 열립니다.</p>
+    <p class="sub">카카오톡을 쓰지 않는 번호에는 같은 내용이 문자로 갑니다.</p>
+  </section>
+
+  <section>
+    <div class="step"><div class="num">?</div><h2>이럴 때는</h2></div>
+    <dl>
+      <dt>"정보가 일치하지 않습니다" 라고 나와요</dt>
+      <dd>이름의 띄어쓰기와 전화번호를 다시 확인해 주세요. 학원에 등록한 <b>학생 번호</b>여야 합니다. 번호가 바뀌었으면 선생님께 알려 주세요.</dd>
+      <dt>자물쇠가 걸린 회차가 있어요</dt>
+      <dd>중간에 들어온 학생은 수강을 시작한 회차부터 열립니다. 앞 회차를 듣고 싶으면 선생님께 말씀해 주세요.</dd>
+      <dt>이전 주소로 들어가도 되나요?</dt>
+      <dd>아니요. 이전 주소에서 제출한 것은 반영되지 않습니다. 꼭 <b>no1science.com</b> 으로 접속해 주세요.</dd>
+    </dl>
+  </section>
+</div></main>
+<footer>1st SCIENCE LAB · 차병건 1등 과학 연구소</footer>
+</body>
+</html>
