@@ -149,7 +149,7 @@ const LIVE = true;
 const API_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/api';   /* 2.0 — Supabase 서버 함수 */
 const ADMIN_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/admin';   /* 2.0 — 관리자 화면이 부르는 서버 함수 */
 const MANAGE_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/manage';   /* 2.0 — 관리자가 고치는 서버 함수 (명단 관리) */
-const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent', 'adminNoteBoard', 'adminClassNoteBoard', 'adminTopicTree', 'adminLearnLinks', 'adminTopicPreview', 'adminSetWeekAccess', 'adminSetWeekPlan', 'adminSetComment', 'adminSetMonthComment', 'adminSetNotice', 'adminSetClassConfig', 'saveVideoLink', 'adminCloseVideoRequest', 'adminReopenVideoRequest', 'adminSetClassNotePublish', 'adminSubmitAssign', 'adminSubmitDaily', 'adminDeleteItems'];
+const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent', 'adminNoteBoard', 'adminClassNoteBoard', 'adminTopicTree', 'adminLearnLinks', 'adminTopicPreview', 'adminSetWeekAccess', 'adminSetWeekPlan', 'adminSetComment', 'adminSetMonthComment', 'adminSetNotice', 'adminSetClassConfig', 'saveVideoLink', 'adminCloseVideoRequest', 'adminReopenVideoRequest', 'adminSetClassNotePublish', 'adminSubmitAssign', 'adminSubmitDaily', 'adminDeleteItems', 'adminRequestClassNote'];
 const tm2Url = a => TM2_MANAGE.indexOf(a) >= 0 ? MANAGE_URL : (/^admin/.test(a) && a !== 'adminLogin' && a !== 'adminSetPassword') || a === 'getInquiries' || a === 'clinicAdminList' || a === 'getNotice' ? ADMIN_URL : API_URL;
 function normPhone(v) {
   let d = String(v || '').replace(/[^0-9]/g, '');
@@ -4579,13 +4579,7 @@ function AdmNotice({
     className: "card-h"
   }, React.createElement("div", {
     className: "card-t"
-  }, prevWeek, "회차 결과 · ", (d.prev.list || []).length, "명 (기록 있음 ", d.prev.ready || 0, "명)"), React.createElement(Btn, {
-    v: "o",
-    size: "s",
-    busy: busy,
-    onClick: makeImg,
-    disabled: !d.prev.ready
-  }, "성적표 이미지 생성")), React.createElement("div", {
+  }, prevWeek, "회차 결과 · ", (d.prev.list || []).length, "명 (기록 있음 ", d.prev.ready || 0, "명)"), null), React.createElement("div", {
     className: "tw"
   }, React.createElement("table", null, React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", {
     className: "l"
@@ -4838,28 +4832,13 @@ function AdmItems({
       display: 'flex',
       gap: 8
     }
-  }, React.createElement(Btn, {
-    v: "g",
-    size: "s",
-    busy: busy,
-    onClick: prepFolder
-  }, "① 폴더 열기"), React.createElement(Btn, {
-    v: "o",
-    size: "s",
-    busy: busy,
-    onClick: linkImages
-  }, "② 이미지 연결"))), React.createElement("div", {
+  }, null)), React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: 'var(--sub)',
       lineHeight: 1.75
     }
-  }, React.createElement("b", null, "①"), " 을 누르면 드라이브에 ", React.createElement("b", null, cls, " W", week), " 폴더가 열립니다. 받으신 이미지 파일(", React.createElement("span", {
-    className: "mono",
-    style: {
-      fontSize: 11
-    }
-  }, "DAY-1_1.png"), " 같은 이름)을 그 안에 전부 넣으세요.", React.createElement("br", null), React.createElement("b", null, "②"), " 를 누르면 파일 이름을 읽어 문항마다 그림을 붙여 줍니다. 결과는 아래에 나옵니다.")), link && link.prep && React.createElement("div", {
+  }, "새 홈페이지에서는 문항을 등록할 때 그림이 함께 올라갑니다. 여기서 따로 넣을 일이 없습니다.")), link && link.prep && React.createElement("div", {
     className: "card pad-s",
     style: {
       marginBottom: 14,
