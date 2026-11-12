@@ -148,7 +148,7 @@ const LIVE = true;
 const API_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/api';   /* 2.0 — Supabase 서버 함수 */
 const ADMIN_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/admin';   /* 2.0 — 관리자 화면이 부르는 서버 함수 */
 const MANAGE_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/manage';   /* 2.0 — 관리자가 고치는 서버 함수 (명단 관리) */
-const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent', 'adminNoteBoard', 'adminClassNoteBoard'];
+const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent', 'adminNoteBoard', 'adminClassNoteBoard', 'adminTopicTree', 'adminLearnLinks', 'adminTopicPreview'];
 const tm2Url = a => TM2_MANAGE.indexOf(a) >= 0 ? MANAGE_URL : (/^admin/.test(a) && a !== 'adminLogin' && a !== 'adminSetPassword') || a === 'getInquiries' || a === 'clinicAdminList' || a === 'getNotice' ? ADMIN_URL : API_URL;
 function normPhone(v) {
   let d = String(v || '').replace(/[^0-9]/g, '');
