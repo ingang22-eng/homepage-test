@@ -874,7 +874,12 @@ function PageClassTime({
     title: "2027 겨울 시간표",
     desc: "2027년 1–2월"
   }), React.createElement(ScheduleTable, {
-    list: WINTER_2027_SCHEDULE
+    list: (() => {
+      const order = ['시대인재', '메가스터디 러셀 원주', '메가스터디 러셀 대전', '미래탐구', '수만휘', '압구정 지니어스'];
+      const rank = a => { const i = order.indexOf(a); return i < 0 ? order.length : i; };
+      return WINTER_2027_SCHEDULE.map((r, i) => ({ r: Object.assign({}, r, { group: '' }), i }))
+        .sort((x, y) => rank(x.r.academy) - rank(y.r.academy) || x.i - y.i).map(x => x.r);
+    })()
   })));
 }
 function PageClassInfo() {
