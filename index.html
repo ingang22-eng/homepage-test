@@ -7640,7 +7640,7 @@ function VersionTag() {
     };
   }, []);
   if (!be) return null;
-  const same = be === UI_VERSION;
+  const same = be === UI_VERSION || /^2\.0-/.test(be);
   return React.createElement("div", {
     style: {
       display: 'flex',
