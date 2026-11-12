@@ -151,6 +151,13 @@ const ADMIN_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/admin';
 const MANAGE_URL = 'https://rdxbheyraubmqkuzejcj.supabase.co/functions/v1/manage';   /* 2.0 — 관리자가 고치는 서버 함수 (명단 관리) */
 const TM2_MANAGE = ['addStudent', 'adminRoster', 'adminWithdrawStudent', 'adminRestoreStudent', 'adminMoveStudent', 'adminUpdateStudent', 'adminNoteBoard', 'adminClassNoteBoard', 'adminTopicTree', 'adminLearnLinks', 'adminTopicPreview', 'adminSetWeekAccess', 'adminSetWeekPlan', 'adminSetComment', 'adminSetMonthComment', 'adminSetNotice', 'adminSetClassConfig', 'saveVideoLink', 'adminCloseVideoRequest', 'adminReopenVideoRequest', 'adminSetClassNotePublish', 'adminSubmitAssign', 'adminSubmitDaily', 'adminDeleteItems', 'adminRequestClassNote', 'adminClassNoteScan'];
 const tm2Url = a => TM2_MANAGE.indexOf(a) >= 0 ? MANAGE_URL : (/^admin/.test(a) && a !== 'adminLogin' && a !== 'adminSetPassword') || a === 'getInquiries' || a === 'clinicAdminList' || a === 'getNotice' ? ADMIN_URL : API_URL;
+/* (2026-11-12) 여러 명이 같은 순간에 몰려 서버가 잠깐 못 받았을 때(5xx · 연결 끊김) — '읽기만 하는' 요청은 조금 뒤 두 번까지 다시 묻는다. 저장·제출·보내기는 다시 보내지 않는다(두 번 들어가면 안 된다). */
+const TM2_READ = /^(get|my)[A-Z]|^(bootstrap|appVersion|clinicConfig|clinicCounts|clinicCheckStudent|clinicForceInfo|clinicAdminList|classNoteScanInfo|adminStudents|adminGetItems|adminWeekAccess|adminBoard|adminVideoRequests|adminClassReport|adminAssignBoard|adminStudentReport|adminMonthBoard|adminClasses|adminRoster|adminNoteBoard|adminClassNoteBoard|adminTopicTree|adminLearnLinks|adminTopicPreview|adminPreviewNotice|adminSmsStatus|adminVersion)$/;
+function tm2Post(url, body, tries) {
+  return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    .then(res => { if (res.status >= 500 && tries > 0) throw new Error('again'); return res.text(); })
+    .catch(e => { if (tries > 0) return new Promise(ok => setTimeout(ok, 700 + Math.floor(Math.random() * 600))).then(() => tm2Post(url, body, tries - 1)); throw e; });
+}
 function normPhone(v) {
   let d = String(v || '').replace(/[^0-9]/g, '');
   if (d.length === 10 && d[0] === '1') d = '0' + d;
@@ -189,11 +196,7 @@ function api(action, data) {
       return;
     }
     /* 2.0 — 앱스스크립트 대신 Supabase 서버 함수를 부른다. 주고받는 모양은 그대로다. */
-    fetch(tm2Url(action), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.assign({ action: action }, payload))
-    }).then(res => res.text()).then(raw => {
+    tm2Post(tm2Url(action), Object.assign({ action: action }, payload), TM2_READ.test(action) ? 2 : 0).then(raw => {
       let p;
       try {
         p = JSON.parse(raw);
@@ -9178,11 +9181,7 @@ function tm2Note() {
       '<p style="color:#64748B;font-size:14px;line-height:1.7;margin:0">' + esc(text) + '</p></div>';
   };
   box('수업 노트를 여는 중입니다', '잠시만 기다려 주세요.');
-  fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'getClassNote', token: tok })
-  }).then(res => res.json()).then(p => {
+  tm2Post(API_URL, { action: 'getClassNote', token: tok }, 2).then(raw => JSON.parse(raw)).then(p => {
     if (!p || !p.success || !p.data) return box('노트를 여는 중 문제가 생겼습니다', '잠시 뒤에 다시 열어 주세요.');
     const d = p.data;
     if (!d.ok) return box(d.title, d.msg);
@@ -9236,10 +9235,7 @@ function tm2Wrong() {
   };
   (async () => {
     const t0 = Date.now();
-    const p = await (await fetch(API_URL, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'getWrongNote', token: tok })
-    })).json();
+    const p = JSON.parse(await tm2Post(API_URL, { action: 'getWrongNote', token: tok }, 2));
     if (!p || !p.success || !p.data) return box('오답노트를 여는 중 문제가 생겼습니다', '잠시 뒤에 다시 열어 주세요.');
     if (!p.data.ok) return box(p.data.title, p.data.msg);
     const d = p.data.data;
