@@ -30,7 +30,13 @@
   }
   if (b.action === 'learnPage' && !b.p) { fail('주소가 올바르지 않습니다.'); return; }
   var MANAGE_ = URL_ === ADMIN_ ? ADMIN_.replace(/admin$/, 'manage') : URL_;
-  function ask(url, body) { return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); }); }
+  /* 여러 명이 같은 순간에 열어 서버가 잠깐 못 받으면(5xx · 연결 끊김) 조금 뒤 두 번까지 다시 묻는다 — 여기서 부르는 것은 모두 읽기다 */
+  function ask(url, body, n) {
+    n = n === undefined ? 2 : n;
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { if (r.status >= 500 && n > 0) throw new Error('again'); return r.json(); })
+      .catch(function (e) { if (n > 0) return new Promise(function (ok) { setTimeout(ok, 700 + Math.floor(Math.random() * 600)); }).then(function () { return ask(url, body, n - 1); }); throw e; });
+  }
   ask(URL_, b)
     .then(function (j) {
       if (b.action === 'shortPage' && j && j.success && j.data && typeof j.data.watch === 'string') return ask(MANAGE_, { action: 'learnPage', p: 'watch', k: j.data.watch });
