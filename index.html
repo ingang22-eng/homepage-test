@@ -933,6 +933,52 @@ function PageClassInfo() {
       lineHeight: 1.9
     }
   }, "그러나 성적만 오르는 수업은 아닙니다. 성적이 오르기 위해서는 학생이 ", React.createElement("b", null, "스스로 문제를 즐기고"), ", 과학이라는 과목에 ", React.createElement("b", null, "자연스럽게 흥미를 갖는 과정"), "이 필수적입니다."))), React.createElement("div", {
+    className: "card", id: "tm2-trackman-card",
+    style: { marginBottom: 14 }
+  }, React.createElement("div", {
+    className: "card-h"
+  }, React.createElement("div", null, React.createElement("div", {
+    id: "tm2-trackman",
+    style: { fontSize: 11.5, fontWeight: 800, letterSpacing: '.16em', color: 'var(--sky)', marginBottom: 6 }
+  }, "SCIENCE TRACKMAN SYSTEM"), React.createElement("div", {
+    style: { fontSize: 21, fontWeight: 900, letterSpacing: '-.02em', color: 'var(--navy)', marginBottom: 4 }
+  }, "사이언스 트랙맨 시스템"), React.createElement("div", {
+    className: "card-t", id: "tm2-trackman-t1"
+  }, "강사의 관심이 학생의 성적입니다."), React.createElement("div", {
+    id: "tm2-trackman-t2",
+    style: { fontSize: 14, fontWeight: 700, color: 'var(--ink2)', marginTop: 4 }
+  }, "빈틈없는 체계적인 관리"))), React.createElement("div", {
+    className: "grid g3"
+  }, mgmt.map(([t, items]) => React.createElement("div", {
+    key: t,
+    style: {
+      border: '1px solid var(--line)',
+      borderRadius: 14,
+      padding: 16
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 14,
+      marginBottom: 9,
+      color: 'var(--navy)'
+    }
+  }, t), items.map((x, i) => React.createElement("div", {
+    key: i,
+    style: {
+      display: 'flex',
+      gap: 7,
+      fontSize: 12.5,
+      color: 'var(--sub)',
+      lineHeight: 1.65,
+      marginBottom: 5
+    }
+  }, React.createElement("span", {
+    style: {
+      color: 'var(--sky)',
+      flex: 'none'
+    }
+  }, "·"), React.createElement("span", null, x))))))), React.createElement("div", {
     className: "card",
     style: {
       marginBottom: 14
@@ -991,55 +1037,7 @@ function PageClassInfo() {
       opacity: .86,
       lineHeight: 1.85
     }
-  }, "단순한 지식 전달이 아니라, 학생이 과학이라는 학문을 자신의 언어와 사고로 재구성할 수 있게 만드는 과정입니다. 이 철학 아래에서 학생은 성적이 오르는 것뿐 아니라, 과학을 즐기고 탐구하려는 마음까지 갖추게 됩니다.")), React.createElement("div", {
-    className: "card"
-  }, React.createElement("div", {
-    className: "card-h"
-  }, React.createElement("div", null, React.createElement("div", {
-    id: "tm2-trackman",
-    style: { fontSize: 11.5, fontWeight: 800, letterSpacing: '.16em', color: 'var(--sky)', marginBottom: 6 }
-  }, "SCIENCE TRACKMAN SYSTEM"), React.createElement("div", {
-    style: { fontSize: 21, fontWeight: 900, letterSpacing: '-.02em', color: 'var(--navy)', marginBottom: 4 }
-  }, "사이언스 트랙맨 시스템"), React.createElement("div", {
-    className: "card-t"
-  }, "체계적인 관리 시스템"), React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: 'var(--sub)',
-      marginTop: 3
-    }
-  }, "끝까지 붙잡고 시키는 관리 — 오늘의 오답을 내일의 정답으로 만드는 집요한 관리"))), React.createElement("div", {
-    className: "grid g3"
-  }, mgmt.map(([t, items]) => React.createElement("div", {
-    key: t,
-    style: {
-      border: '1px solid var(--line)',
-      borderRadius: 14,
-      padding: 16
-    }
-  }, React.createElement("div", {
-    style: {
-      fontWeight: 800,
-      fontSize: 14,
-      marginBottom: 9,
-      color: 'var(--navy)'
-    }
-  }, t), items.map((x, i) => React.createElement("div", {
-    key: i,
-    style: {
-      display: 'flex',
-      gap: 7,
-      fontSize: 12.5,
-      color: 'var(--sub)',
-      lineHeight: 1.65,
-      marginBottom: 5
-    }
-  }, React.createElement("span", {
-    style: {
-      color: 'var(--sky)',
-      flex: 'none'
-    }
-  }, "·"), React.createElement("span", null, x))))))));
+  }, "단순한 지식 전달이 아니라, 학생이 과학이라는 학문을 자신의 언어와 사고로 재구성할 수 있게 만드는 과정입니다. 이 철학 아래에서 학생은 성적이 오르는 것뿐 아니라, 과학을 즐기고 탐구하려는 마음까지 갖추게 됩니다.")));
 }
 function PageInquiry({
   toast
