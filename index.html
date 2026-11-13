@@ -884,7 +884,7 @@ function PageClassTime({
 }
 function PageClassInfo() {
   const feats = ['평가 기준 정밀 분석으로 내신과 수능 점수 상승을 목표화', '문항 구조 해석 수업으로 문제를 보면 접근 방식이 자동으로 떠오르는 수준까지 훈련', '오개념·실수 패턴 추적 시스템을 통한 즉각 개선', '재미와 몰입을 유도하는 설명 방식으로 과학적 사고력 강화', '학생별 맞춤 진단 및 학습 동선 설계로 최적의 성장 곡선 확보'];
-  const mgmt = [['과제물 중간 점검', ['주차별 과제물 중간점검 (학부모 문자 발송)', '홈페이지 로그인 후 문항별 O/X 체크', '제출 즉시 채점과 오답노트 자동 생성']], ['개별 오답노트 [블랙박스]', ['틀린 문항만 모아 개별 맞춤 오답노트 제공', '단원·개념·난이도·반 정답률까지 함께 표기']], ['데일리 테스트', ['매 수업 객관식 테스트, 제출 즉시 자동 채점', '누적 성적과 반 평균·등수를 상시 확인']], ['성적표 발송', ['회차별 성적표를 학생·학부모에게 발송', '문항 난이도와 정답률까지 담은 누적 성적표']], ['학부모 밴드 운영', ['수업 사진 & 동영상 업로드', '필수 공지 사항 및 입시 자료 업로드']], ['클리닉 & 추가 콘텐츠', ['개별 클리닉 홈페이지에서 바로 신청', '킬러/준킬러 문항 풀이 추가 영상 링크 발송']]];
+  const mgmt = [['과제물 제출 · 자동 채점', ['매주 과제물 답안을 홈페이지에 입력', '제출 즉시 자동 채점, 틀린 문항 바로 확인', '주차별 과제물 중간 점검과 미제출 관리']], ['개별 오답노트 [블랙박스]', ['제출하면 틀린 문항만 모은 개인 오답노트 자동 생성', '단원·개념·유형·난이도·반 정답률까지 함께 표기', 'PDF 로 받아 다시 풀고 클리닉에서 확인']], ['데일리 테스트', ['매 수업 데일리 테스트, 제출 즉시 자동 채점', '누적 성적과 반 평균을 한눈에 확인', '60점 이하는 클리닉에서 재시험과 추가 설명']], ['회차별 성적표 · 알림톡', ['회차마다 성적표와 선생님 코멘트 제공', '단원별 약점과 문항별 정답률까지 분석', '카카오톡 채널 알림톡으로 학생·학부모에게 발송']], ['수업 영상 · 수업 노트', ['회차별 수업 영상을 홈페이지에서 다시 보기', '수업 내용을 정리한 수업 노트 제공', '결석·복습 때 영상과 노트로 진도 보충']], ['클리닉 · 월말 평가', ['개별 클리닉을 홈페이지에서 바로 신청', '질문 해결과 추가 문항 풀이까지 1:1 로 확인', '매달 월말 평가로 한 달의 학습을 정리']]];
   return React.createElement("div", {
     className: "shell page"
   }, React.createElement(SectionHead, {
@@ -996,6 +996,11 @@ function PageClassInfo() {
   }, React.createElement("div", {
     className: "card-h"
   }, React.createElement("div", null, React.createElement("div", {
+    id: "tm2-trackman",
+    style: { fontSize: 11.5, fontWeight: 800, letterSpacing: '.16em', color: 'var(--sky)', marginBottom: 6 }
+  }, "SCIENCE TRACKMAN SYSTEM"), React.createElement("div", {
+    style: { fontSize: 21, fontWeight: 900, letterSpacing: '-.02em', color: 'var(--navy)', marginBottom: 4 }
+  }, "사이언스 트랙맨 시스템"), React.createElement("div", {
     className: "card-t"
   }, "체계적인 관리 시스템"), React.createElement("div", {
     style: {
@@ -1003,7 +1008,7 @@ function PageClassInfo() {
       color: 'var(--sub)',
       marginTop: 3
     }
-  }, "오늘의 오답을 내일의 정답으로 만드는 집요한 관리"))), React.createElement("div", {
+  }, "끝까지 붙잡고 시키는 관리 — 오늘의 오답을 내일의 정답으로 만드는 집요한 관리"))), React.createElement("div", {
     className: "grid g3"
   }, mgmt.map(([t, items]) => React.createElement("div", {
     key: t,
