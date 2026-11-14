@@ -45,6 +45,22 @@ const OUTSIDE_ACADEMY = [{
 const INHOUSE_ACADEMY = ['시대인재', '미래탐구'];
 /* (2026-11-14) 클리닉 메뉴 — open : 이 날(서울)부터 신청. 그 전에는 단추만 보이고 안내가 나온다. branches : 안에서 지점을 고른다 */
 const TM2_CLINIC_OPEN = '2026-12-29';
+/* (2026-11-14) 반 순서 — 학원 순서, 그 안에서 이름에 든 글자 순서 */
+const TM2_CLASS_ORDER = [['시대인재', ['한가람고', '물질과 에너지', '예비고1', '연합반', '화학반응의 세계']], ['미래탐구', ['고2 화학', '용문고', '영훈고']]];
+const tm2ClassRank = n => {
+  n = String(n || '');
+  for (let i = 0; i < TM2_CLASS_ORDER.length; i++) {
+    if (n.indexOf(TM2_CLASS_ORDER[i][0]) !== 0) continue;
+    const k = TM2_CLASS_ORDER[i][1].findIndex(w => n.indexOf(w) >= 0);
+    return [i, k < 0 ? 99 : k];
+  }
+  return [99, 99];
+};
+const tm2ClassCmp = (a, b) => {
+  const x = tm2ClassRank(a), y = tm2ClassRank(b);
+  return x[0] - y[0] || x[1] - y[1] || (String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0);
+};
+const tm2SortBoot = b => b && Array.isArray(b.classes) ? Object.assign({}, b, { classes: b.classes.slice().sort((p, q) => tm2ClassCmp(p.className, q.className)) }) : b;
 const TM2_CLINIC_MENU = [{ name: '시대인재' }, { name: '미래탐구' }, { name: '메가스터디 러셀', open: TM2_CLINIC_OPEN, branches: [['메가스터디 러셀 원주', '원주 · 월요일'], ['메가스터디 러셀 대전', '대전 · 수요일']] }, { name: '압구정 지니어스', open: TM2_CLINIC_OPEN }, { name: '수만휘', open: TM2_CLINIC_OPEN }];
 const TM2_CLINIC_ACADEMIES = ['시대인재', '미래탐구', '메가스터디 러셀 원주', '메가스터디 러셀 대전', '압구정 지니어스', '수만휘'];
 const SNS = [{
@@ -3074,7 +3090,7 @@ function PageClinic({
       ...f,
       className: v
     }),
-    options: cfg.classes || [],
+    options: (cfg.classes || []).slice().sort(tm2ClassCmp),
     placeholder: (cfg.classes || []).length ? "반을 선택하세요" : "아직 등록된 반이 없습니다"
   })), React.createElement(Field, {
     label: "학생 이름"
@@ -8774,7 +8790,7 @@ function App() {
   }, []);
   const loadBoot = useCallback(() => {
     api('bootstrap').then(b => {
-      setBoot(b);
+      setBoot(tm2SortBoot(b));
       setBootErr('');
     }).catch(e => setBootErr(e.message || '서버에 연결하지 못했습니다.'));
   }, []);
