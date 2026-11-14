@@ -43,6 +43,10 @@ const OUTSIDE_ACADEMY = [{
   url: 'https://script.google.com/macros/s/AKfycbwVb7z9k_SPcqYzZkrgyniZ1nw6e2tNSqtvgaDXAExi8Pfz0Afg7QEuStysI_X7sy4/exec'
 }];
 const INHOUSE_ACADEMY = ['시대인재', '미래탐구'];
+/* (2026-11-14) 클리닉 메뉴 — open : 이 날(서울)부터 신청. 그 전에는 단추만 보이고 안내가 나온다. branches : 안에서 지점을 고른다 */
+const TM2_CLINIC_OPEN = '2026-12-29';
+const TM2_CLINIC_MENU = [{ name: '시대인재' }, { name: '미래탐구' }, { name: '메가스터디 러셀', open: TM2_CLINIC_OPEN, branches: [['메가스터디 러셀 원주', '원주 · 월요일'], ['메가스터디 러셀 대전', '대전 · 수요일']] }, { name: '압구정 지니어스', open: TM2_CLINIC_OPEN }, { name: '수만휘', open: TM2_CLINIC_OPEN }];
+const TM2_CLINIC_ACADEMIES = ['시대인재', '미래탐구', '메가스터디 러셀 원주', '메가스터디 러셀 대전', '압구정 지니어스', '수만휘'];
 const SNS = [{
   name: '카카오톡',
   url: 'https://pf.kakao.com/_nbvZn/friend',
@@ -2807,8 +2811,21 @@ function PageClinic({
   const [busy, setBusy] = useState(false);
   const [ok, setOk] = useState(null);
   const autoRef = useRef('');
+  const [menu, setMenu] = useState('');
+  const tm2Menu = TM2_CLINIC_MENU.find(m => m.name === menu) || null;
+  const tm2Today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  const tm2Before = m => !!(m && m.open && tm2Today < m.open);
+  const tm2Pick = m => {
+    if (menu === m.name) { setMenu(''); setAc(''); return; }
+    setMenu(m.name);
+    setAc(m.branches || tm2Before(m) ? '' : m.name);
+  };
   useEffect(() => {
-    if (force && force.academy) setAc(force.academy);
+    if (force && force.academy) {
+      setAc(force.academy);
+      const o = TM2_CLINIC_MENU.find(m => m.name === force.academy || (m.branches || []).some(b => b[0] === force.academy));
+      if (o) setMenu(o.name);
+    }
   }, [force]);
   useEffect(() => {
     if (!ac) {
@@ -2951,35 +2968,33 @@ function PageClinic({
       marginBottom: 12
     }
   }, "학원 선택"), React.createElement("div", {
+    id: "tm2-clinic-menu",
     className: "grid g2 keep",
     style: {
       gap: 9
     }
-  }, INHOUSE_ACADEMY.map(a => React.createElement("button", {
-    key: a,
-    className: 'btn ' + (ac === a ? 'btn-p' : 'btn-o'),
-    onClick: () => setAc(ac === a ? '' : a)
-  }, a))), React.createElement("div", {
+  }, TM2_CLINIC_MENU.map(m => React.createElement("button", {
+    key: m.name,
+    className: 'btn ' + (menu === m.name ? 'btn-p' : 'btn-o'),
+    onClick: () => tm2Pick(m)
+  }, m.name, tm2Before(m) ? React.createElement("span", {
+    style: { fontSize: 11.5, fontWeight: 500, opacity: .7, marginLeft: 6 }
+  }, "12/29 오픈") : null))), tm2Menu && tm2Before(tm2Menu) && React.createElement("div", {
+    id: "tm2-clinic-wait",
+    style: { marginTop: 14, padding: '14px 16px', borderRadius: 12, background: 'var(--bg2, #F3F6FA)', fontSize: 14, lineHeight: 1.7, color: 'var(--ink2)' }
+  }, React.createElement("b", null, tm2Menu.name), " 클리닉은 ", React.createElement("b", null, "12월 29일(화)"), "부터 신청할 수 있습니다.", React.createElement("br", null), "겨울 수업이 있는 요일 · 시간 안에서 고르게 됩니다."), tm2Menu && tm2Menu.branches && !tm2Before(tm2Menu) && React.createElement(React.Fragment, null, React.createElement("div", {
     className: "divider"
   }), React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--sub)',
-      marginBottom: 9
-    }
-  }, "그 밖의 학원은 각 학원 전용 페이지로 연결됩니다."), React.createElement("div", {
+    style: { fontSize: 13, fontWeight: 700, marginBottom: 9 }
+  }, "지점 선택"), React.createElement("div", {
+    id: "tm2-clinic-branch",
     className: "grid g2 keep",
-    style: {
-      gap: 8
-    }
-  }, OUTSIDE_ACADEMY.map(a => React.createElement("button", {
-    key: a.name,
-    className: "btn btn-o btn-s",
-    onClick: () => window.open(a.url, '_blank')
-  }, a.name, " ", React.createElement(Icon, {
-    n: "out",
-    s: 13
-  }))))), ac && !cfg && React.createElement(Loading, null), ok && React.createElement("div", {
+    style: { gap: 9 }
+  }, tm2Menu.branches.map(b => React.createElement("button", {
+    key: b[0],
+    className: 'btn ' + (ac === b[0] ? 'btn-p' : 'btn-o'),
+    onClick: () => setAc(ac === b[0] ? '' : b[0])
+  }, b[1]))))), ac && !cfg && React.createElement(Loading, null), ok && React.createElement("div", {
     className: "card",
     style: {
       background: 'linear-gradient(140deg,#0A2F4F,#0F4C81)',
@@ -3060,7 +3075,7 @@ function PageClinic({
       className: v
     }),
     options: cfg.classes || [],
-    placeholder: "반을 선택하세요"
+    placeholder: (cfg.classes || []).length ? "반을 선택하세요" : "아직 등록된 반이 없습니다"
   })), React.createElement(Field, {
     label: "학생 이름"
   }, React.createElement("input", {
@@ -5869,7 +5884,7 @@ function AdmClinic({
   }, React.createElement(Sel, {
     value: ac,
     onChange: setAc,
-    options: INHOUSE_ACADEMY
+    options: TM2_CLINIC_ACADEMIES
   })), React.createElement(Field, {
     label: "구분"
   }, React.createElement(Sel, {
