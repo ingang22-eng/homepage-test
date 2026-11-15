@@ -561,7 +561,7 @@ function WeekGrid({
     className: "wgrid"
   }, weeks.map(w => {
     const s = w[slot] || {};
-    if (w.locked) return React.createElement("div", {
+    if (w.locked || s.locked) return React.createElement("div", {
       key: w.week,
       className: "wcell",
       title: "수강 신청을 하지 않은 회차입니다",
@@ -1445,7 +1445,7 @@ function PageMyPage({
   const weeks = Array.isArray(d.weeks) ? d.weeks : [];
   const notes = Array.isArray(d.notes) ? d.notes : [];
   const cnotes = Array.isArray(d.classNotes) ? d.classNotes : [];
-  const lockedWeeks = weeks.filter(w => w.locked).map(w => w.week);
+  const lockedWeeks = weeks.filter(w => w.locked || (w.assign && w.assign.locked)).map(w => w.week);
   const sel = pick ? weeks.find(w => w.week === pick) : null;
   const cur = sel ? sel[tab] : null;
   return React.createElement("div", {
@@ -1504,7 +1504,7 @@ function PageMyPage({
   }, React.createElement("b", null, React.createElement(Icon, {
     n: "lock",
     s: 13
-  }), " ", lockedWeeks.join('·'), "회차는 아직 열려 있지 않습니다."), ' ', "수강 신청을 하지 않은 회차라 동영상·과제물·성적표가 모두 잠겨 있습니다. 듣고 싶으시면 ", React.createElement("b", null, "선생님께 말씀해 주세요."), React.createElement("br", null), React.createElement("span", {
+  }), " ", lockedWeeks.join('·'), "회차는 아직 열려 있지 않습니다."), ' ', "수강 시작 전 회차라 동영상·과제물이 잠겨 있습니다. 첫 수업 날 보는 데일리 테스트는 열려 있습니다. 듣고 싶으시면 ", React.createElement("b", null, "선생님께 말씀해 주세요."), React.createElement("br", null), React.createElement("span", {
     style: {
       color: 'var(--sub)'
     }
