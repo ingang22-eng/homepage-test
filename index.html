@@ -4302,6 +4302,38 @@ function AdmClassNotes({
     }
   }, "학생은 ", React.createElement("b", null, "문자로 받은 링크"), "로 바로 열어 봅니다. 로그인하지 않아도 열립니다.", React.createElement("br", null), React.createElement("b", null, "준비중"), " 인 노트는 링크를 눌러도 보이지 않으므로, 검수 전에는 공개하지 마세요.")));
 }
+const TM2_ATT = ['출석', '지각', '결석', '동영상'];
+function TM2Attend({ week, students, att, setAtt, on, setOn, busy, onSave }) {
+  const list = students || [];
+  const cnt = {};
+  TM2_ATT.forEach(k => { cnt[k] = 0; });
+  list.forEach(s => { const v = att[s.name]; if (cnt[v] !== undefined) cnt[v] += 1; });
+  const all = () => { const a = {}; list.forEach(s => { a[s.name] = '출석'; }); setAtt(a); };
+  const tone = v => v === '출석' ? 'var(--ok, #0F766E)' : v === '지각' ? '#B45309' : '#B91C1C';
+  return React.createElement("div", { className: "card", style: { marginBottom: 14 } },
+    React.createElement("div", { className: "card-h" },
+      React.createElement("div", { className: "card-t" }, week, "회차 출결",
+        React.createElement("span", { style: { marginLeft: 10, fontSize: 12.5, fontWeight: 600, color: 'var(--sub)' } },
+          TM2_ATT.map(k => k + ' ' + cnt[k]).join(' · '))),
+      React.createElement("div", { style: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' } },
+        React.createElement("label", { style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' } },
+          React.createElement("input", { type: "checkbox", checked: !!on, onChange: e => setOn(e.target.checked) }), "공지에 넣기"),
+        React.createElement(Btn, { v: "g", size: "s", onClick: all }, "전체 출석"),
+        React.createElement(Btn, { v: "g", size: "s", busy: busy, onClick: onSave, disabled: !list.length }, "출결 저장"))),
+    React.createElement("div", { className: "pad" },
+      list.length ? React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 } },
+        list.map(s => {
+          const v = att[s.name] || '출석';
+          return React.createElement("div", { key: s.name, style: { display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 10,
+              border: '1px solid ' + (v === '출석' ? 'var(--line)' : tone(v)), background: v === '출석' ? 'transparent' : 'var(--soft)' } },
+            React.createElement("span", { style: { flex: 1, fontWeight: 700, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, s.name),
+            React.createElement("select", { className: "inp", style: { width: 96, padding: '6px 8px', fontWeight: 700, color: tone(v) }, value: v,
+                onChange: e => { const nv = e.target.value; setAtt(p => Object.assign({}, p, { [s.name]: nv })); } },
+              TM2_ATT.map(k => React.createElement("option", { key: k, value: k }, k))));
+        })) : React.createElement("div", { style: { color: 'var(--mute)', fontSize: 13 } }, "이 반에 학생이 없습니다."),
+      React.createElement("div", { style: { fontSize: 12, color: 'var(--mute)', marginTop: 10, lineHeight: 1.7 } },
+        "처음에는 모두 출석입니다. 결석 · 동영상으로 고른 학생에게는 '과제물과 데일리테스트를 다음 시간 등원 전까지 꼭 홈페이지에 입력해 주세요.' 문구가 함께 나갑니다. 문자를 보내면 출결도 같이 저장됩니다.")));
+}
 function AdmNotice({
   classes,
   maxSession,
@@ -4319,13 +4351,17 @@ function AdmNotice({
   const [prev, setPrev] = useState(null);
   const [sent, setSent] = useState(null);
   const [cutN, setCutN] = useState([]);
+  const [att, setAtt] = useState({});
+  const [pv, setPv] = useState('');
+  const [attSaving, setAttSaving] = useState(false);
   const [opt, setOpt] = useState({
     withAssign: true,
     withDaily: true,
     withComment: true,
     withReport: true,
     withForce: true,
-    withNote: true
+    withNote: true,
+    withAttend: true
   });
   const prevWeek = week - 1;
   const first = prevWeek < 1;
@@ -4341,6 +4377,10 @@ function AdmNotice({
       });
       setD(r);
       setBody(r.body || '');
+      const sv = r.attendance || {}, a0 = {};
+      (r.students || []).forEach(x => { a0[x.name] = TM2_ATT.indexOf(sv[x.name]) >= 0 ? sv[x.name] : '출석'; });
+      setAtt(a0);
+      setPv('');
     } catch (e) {
       toast(e.message, 'err');
     }
@@ -4352,20 +4392,35 @@ function AdmNotice({
     setSent(null);
     setCutN([]);
     setBody('');
+    setAtt({});
+    setPv('');
   }, [cls, week]);
   const payload = () => Object.assign({
     className: cls,
     week,
     body,
-    target
+    target,
+    attend: att,
+    studentName: pv
   }, first ? {
     withAssign: false,
     withDaily: false,
     withComment: false,
     withReport: false,
     withForce: false,
-    withNote: false
+    withNote: false,
+    withAttend: opt.withAttend
   } : opt);
+  const saveAtt = async () => {
+    setAttSaving(true);
+    try {
+      const r = await api('adminSetAttendance', { className: cls, week, attend: att });
+      toast(week + '회차 출결을 저장했습니다.' + (r && r.missing && r.missing.length ? ' (명단에 없는 ' + r.missing.length + '명 제외)' : ''), 'ok');
+    } catch (e) {
+      toast(e.message, 'err');
+    }
+    setAttSaving(false);
+  };
   const saveBody = async () => {
     setBusy(true);
     try {
@@ -4394,7 +4449,8 @@ function AdmNotice({
     if (!d) return;
     const who = target === 'both' ? '학생과 학부모' : target === 'student' ? '학생' : '학부모';
     const line = first ? week + '회차 공지를 ' + d.total + '명의 ' + who + '에게 보냅니다.' : week + '회차 공지 + ' + prevWeek + '회차 결과를 ' + d.total + '명의 ' + who + '에게 보냅니다.';
-    if (!window.confirm(line + '\n계속할까요?')) return;
+    const attLine = opt.withAttend ? '\n' + week + '회차 출결 : ' + TM2_ATT.map(k => k + ' ' + Object.keys(att).filter(n => att[n] === k).length).join(' · ') : '';
+    if (!window.confirm(line + attLine + '\n계속할까요?')) return;
     setBusy(true);
     try {
       const r = await api('adminSendNotice', payload());
@@ -4534,7 +4590,16 @@ function AdmNotice({
       marginTop: 8,
       lineHeight: 1.7
     }
-  }, "모든 학생에게 똑같이 나가는 글입니다. 학생마다 다른 내용은 아래 코멘트에서 고치세요."))), React.createElement("div", {
+  }, "모든 학생에게 똑같이 나가는 글입니다. 학생마다 다른 내용은 아래 코멘트에서 고치세요."))), React.createElement(TM2Attend, {
+    week: week,
+    students: d.students || [],
+    att: att,
+    setAtt: setAtt,
+    on: opt.withAttend,
+    setOn: v => setOpt(Object.assign({}, opt, { withAttend: v })),
+    busy: attSaving,
+    onSave: saveAtt
+  }), React.createElement("div", {
     className: "card",
     style: {
       marginBottom: 14
@@ -4563,6 +4628,14 @@ function AdmNotice({
     value: target,
     onChange: setTarget,
     options: [['both', '학생+학부모'], ['student', '학생만'], ['parent', '학부모만']]
+  })), React.createElement("div", {
+    style: {
+      width: 130
+    }
+  }, React.createElement(Sel, {
+    value: pv,
+    onChange: setPv,
+    options: [['', '미리보기 학생']].concat((d.students || []).map(x => [x.name, x.name]))
   })), React.createElement(Btn, {
     v: "g",
     size: "s",
